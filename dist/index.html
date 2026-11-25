@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#294d3c">
+  <meta name="description" content="Научись свистеть сигнал сойки-пересмешницы из Голодных игр. Живой тюнер, тренировка по нотам, повторение и ритм.">
+  <title>Пересмешник — поймай мелодию</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <svg class="icon-library" aria-hidden="true"><defs>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7Z"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4m-4 0h8"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></symbol>
+    <symbol id="i-sound" viewBox="0 0 24 24"><path d="m11 5-5 4H3v6h3l5 4ZM15 8a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M20 3c-1 12-3 16-9 16a7 7 0 0 1-6-11c4-4 10-1 15-5ZM3 22 15 10"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="10" width="14" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3m-4 4v3"/></symbol>
+    <symbol id="i-notes" viewBox="0 0 24 24"><path d="M9 18V5l11-2v13M9 9l11-2"/><ellipse cx="6" cy="18" rx="3" ry="2.5"/><ellipse cx="17" cy="16" rx="3" ry="2.5"/></symbol>
+    <symbol id="i-echo" viewBox="0 0 24 24"><path d="M3 10v4m4-8v12m5-16v20m5-16v12m4-8v4"/></symbol>
+    <symbol id="i-rhythm" viewBox="0 0 24 24"><path d="m9 3-5 17h16L15 3ZM12 15l6-9M9 17h6"/></symbol>
+    <symbol id="i-tune" viewBox="0 0 24 24"><path d="M4 9v6m4-10v14m4-16v18m4-16v14m4-10v6"/></symbol>
+  </defs></svg>
+  <header class="site-header">
+    <a class="brand" href="#practice" aria-label="Пересмешник, главная"><img src="./favicon.svg" width="42" height="42" alt=""><span>пересмешник<small>СТУДИЯ СВИСТА</small></span></a>
+    <nav aria-label="Основная навигация"><button class="nav-link active" data-page="practice" aria-current="page">Тренировка</button><button class="nav-link" data-page="guide">Как свистеть</button><button class="nav-link" data-page="progress">Мой прогресс</button></nav>
+    <span class="header-note"><svg class="icon"><use href="#i-leaf"/></svg> Маленькая практика каждый день</span>
+  </header>
+  <main>
+    <section id="page-practice" class="page">
+      <div class="hero"><div><p class="eyebrow">ВДОХНОВЛЕНО «ГОЛОДНЫМИ ИГРАМИ»</p><h1>Поймай мелодию<span>.</span></h1><p class="hero-copy">Четыре ноты, которые узнает каждый пересмешник.<br>Слушай, свисти и находи своё звучание.</p></div><div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><svg viewBox="0 0 220 150"><path d="M30 104c41-3 40-63 96-73-1 28-11 43-32 55l59-14-21 26-47 3-39 35 14-39Z"/><path d="m126 31 33 1-25 15"/><path class="bird-line" d="M149 50c17-5 29-1 36 11m-27-24c17-5 31-1 40 11"/></svg><span>Пусть тебя услышат.</span></div></div>
+      <div class="workspace">
+        <div class="main-column">
+          <div class="mode-tabs" role="group" aria-label="Режим тренировки">
+            <button class="mode active" data-mode="steps" aria-pressed="true"><svg class="icon"><use href="#i-notes"/></svg>По нотам</button>
+            <button class="mode" data-mode="echo" aria-pressed="false"><svg class="icon"><use href="#i-echo"/></svg>Эхо</button>
+            <button class="mode" data-mode="rhythm" aria-pressed="false"><svg class="icon"><use href="#i-rhythm"/></svg>В ритме</button>
+            <button class="mode" data-mode="free" aria-pressed="false"><svg class="icon"><use href="#i-tune"/></svg>Тюнер</button>
+          </div>
+          <section class="practice-card" aria-labelledby="melody-title">
+            <div class="card-heading"><div><p class="eyebrow">ТВОЯ МЕЛОДИЯ</p><h2 id="melody-title">Сигнал пересмешницы</h2></div><button id="listen" class="button button-light"><svg class="icon"><use href="#i-sound"/></svg><span>Послушать</span></button></div>
+            <p id="mode-description" class="mode-description">Попади в ноту и удержи её. Продолжим, когда будешь готов.</p>
+            <div id="note-cards" class="note-cards" aria-label="Ноты мелодии"></div>
+            <div class="pitch-stage">
+              <div class="stage-top"><span><span class="legend-line"></span> Мелодия</span><span><span class="legend-dot"></span> Твой свист</span><span id="stage-label">Слушаем тишину</span></div>
+              <canvas id="pitch-canvas" role="img" aria-label="График высоты звука: эталонная мелодия и твой свист"></canvas>
+              <div class="stage-bottom"><span id="chart-caption">Вдохни. Здесь появится твоя мелодия.</span><span id="note-position">4 ноты · 1 фраза</span></div>
+            </div>
+            <div class="tuner-panel"><div class="pitch-reading"><span class="field-label">ТВОЯ НОТА</span><strong id="heard-note">—</strong><small id="heard-frequency">Ждём звук</small></div><div class="intonation"><div class="intonation-title"><span>Ниже</span><strong id="intonation-message">Найди свой звук</strong><span>Выше</span></div><div class="gauge"><div class="gauge-zone"></div><span id="gauge-needle" class="gauge-needle"></span><span class="gauge-center"></span></div><div class="gauge-labels"><span>−100</span><span id="cents-value">отклонение в центах</span><span>+100</span></div></div><div class="pitch-reading target-reading"><span class="field-label">ЦЕЛЬ</span><strong id="target-note">G5</strong><small id="target-frequency">784 Гц</small></div></div>
+            <div class="actions"><button id="start" class="button button-primary"><svg class="icon"><use href="#i-mic"/></svg><span>Начать тренировку</span></button><button id="stop" class="button button-quiet" disabled><svg class="icon"><use href="#i-stop"/></svg>Остановить</button><span id="session-hint">В твоём темпе</span></div>
+            <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+            <div id="result" class="result" aria-live="polite" hidden><div><p class="eyebrow">ФРАЗА ЗАВЕРШЕНА</p><h3 id="result-title"></h3><p id="result-description"></p></div><strong id="result-score"></strong></div>
+          </section>
+          <p class="privacy-line"><svg class="icon"><use href="#i-lock"/></svg>Звук остаётся в браузере. Мы его не записываем и не отправляем.</p>
+        </div>
+        <aside class="side-column" aria-label="Настройки тренировки">
+          <section class="settings-card"><div class="side-heading"><h2>В своём темпе</h2><span class="small-icon">♩</span></div>
+            <fieldset><legend>Скорость <span id="tempo-value">90 BPM</span></legend><div class="speed-options"><button data-bpm="60" aria-pressed="false"><span>Медленно</span><small>60 BPM</small></button><button data-bpm="90" class="active" aria-pressed="true"><span>Обычно</span><small>90 BPM</small></button><button data-bpm="120" aria-pressed="false"><span>Быстро</span><small>120 BPM</small></button></div><p id="speed-help" class="control-help">Задаёт длительность удержания нот.</p></fieldset>
+            <label class="select-label" for="difficulty">Точность <span id="tolerance-label">±30 центов</span></label><select id="difficulty"><option value="50">Первый полёт · мягко</option><option value="30" selected>Уверенный свист · обычно</option><option value="15">Идеальный сигнал · строго</option></select>
+            <label class="select-label" for="octave">Октава образца</label><select id="octave"><option value="4">4-я · исходная мелодия</option><option value="5" selected>5-я · выше, для свиста</option><option value="6">6-я · очень высоко</option></select>
+            <label class="switch-row"><span>Любая октава<small>Та же нота выше или ниже тоже считается</small></span><input id="any-octave" type="checkbox" checked role="switch"><span class="switch-ui" aria-hidden="true"></span></label>
+            <details class="extra-settings"><summary>Звук и чувствительность</summary><label class="select-label" for="sensitivity">Окружение</label><select id="sensitivity"><option value="0.003">Тихая комната</option><option value="0.006" selected>Обычная комната</option><option value="0.018">Есть фоновый шум</option></select><label class="select-label" for="volume">Громкость образца</label><input id="volume" type="range" min="0" max="100" value="55"><p class="control-help">Наушники помогут лучше слышать себя.</p></details>
+          </section>
+          <section class="mic-card"><div class="mic-icon"><svg class="icon"><use href="#i-mic"/></svg></div><div><h3 id="mic-label">Микрофон выключен</h3><p id="mic-description">Включится, когда начнёшь</p></div><div class="level-track" aria-label="Уровень входящего звука"><div id="input-level"></div></div></section>
+          <section class="tip-card"><svg class="icon"><use href="#i-leaf"/></svg><p class="eyebrow">МАЛЕНЬКИЙ СОВЕТ</p><h3>Тише — значит точнее.</h3><p>Не дуй изо всех сил. Ровный, мягкий выдох помогает удержать ноту. Держи микрофон в 20–30 см.</p><button class="text-button" data-page="guide">Ещё о технике свиста</button></section>
+        </aside>
+      </div>
+    </section>
+    <section id="page-guide" class="page text-page" hidden><p class="eyebrow">ПЕРЕД ПЕРВЫМ ПОЛЁТОМ</p><h1>Начни с одного звука<span>.</span></h1><p class="hero-copy">Свист — маленькое движение, а не большое усилие.</p><div class="guide-grid"><article><span class="guide-icon">◌</span><h2>Найди положение</h2><p>Слегка увлажни губы и сложи их в небольшую букву «у». Язык расслабь, его кончик держи недалеко от нижних зубов. Медленно выдыхай, понемногу меняя форму губ.</p></article><article><span class="guide-icon">≋</span><h2>Поймай высоту</h2><p>Начни с тюнера. Маленькое изменение положения языка и размера отверстия меняет ноту. Экспериментируй плавно и ориентируйся на подсказку «чуть выше» или «чуть ниже».</p></article><article><span class="guide-icon">♫</span><h2>Собери сигнал</h2><p>Соль, си-бемоль, ля, ре. Сначала немного вверх, на полтона вниз, затем заметно вниз. Последнюю ноту тяни в четыре раза дольше каждой из первых трёх.</p></article></div><section class="guide-detail"><h2>Как выбрать режим</h2><dl><div><dt>По нотам</dt><dd>Удерживай каждую ноту до заполнения карточки. Паузы между нотами не ограничены.</dd></div><div><dt>Эхо</dt><dd>Послушай всю фразу, дождись сигнала и повтори её. Переход к следующей ноте зависит от твоего свиста.</dd></div><div><dt>В ритме</dt><dd>После трёх долей отсчёта следуй за курсором. Паузы и пропущенные ноты снижают результат.</dd></div><div><dt>Тюнер</dt><dd>Свисти свободно: смотри текущую ноту, частоту и отклонение от ближайшей ноты. Результат не оценивается.</dd></div></dl><p>100 центов — один полутон. Зелёная область означает попадание в выбранный допуск. Итог учитывает близость к центру ноты, а в режиме ритма — ещё и время звучания. Это учебная оценка, не профессиональное измерение.</p></section><section class="guide-detail"><h2>Если микрофон не слышит свист</h2><p>Открой сайт по HTTPS в отдельной вкладке Chrome, Edge, Firefox или Safari и разреши микрофон. Встроенная вкладка приложения может ограничивать доступ. Проверь выбранный микрофон в настройках браузера и закрой приложения, которые его используют.</p><p>Для тихого свиста выбери «Тихая комната». Если звук слишком высокий или низкий, измени октаву; переключатель «Любая октава» позволяет тренироваться в удобном регистре. Тюнер рассчитан на один ровный звук примерно от 180 до 2500 Гц.</p><p>Тренировка прекращается при переходе в другую вкладку. Результаты хранятся только в этом браузере; очистка данных сайта удалит их.</p></section><p class="source-note">Учебная версия сигнала сойки-пересмешницы, а не запись из фильма. Ноты G4–B♭4–A4–D4 и соотношение длительностей 1:1:1:4 сверены с <a href="https://trademarks.justia.com/854/09/n-85409089.html" target="_blank" rel="noopener noreferrer">описанием звукового знака Lions Gate</a>. Темпы 60/90/120 BPM выбраны для тренировки. Независимый фанатский проект.</p><button class="button button-primary" data-page="practice">Перейти к практике</button></section>
+    <section id="page-progress" class="page text-page" hidden><p class="eyebrow">МАЛЕНЬКИЕ ШАГИ, ЗНАКОМЫЙ СИГНАЛ</p><h1>Твой полёт<span>.</span></h1><p class="hero-copy">Завершённые фразы и точность — на этом устройстве.</p><div class="stats-grid"><div><span>Завершено фраз</span><strong id="stat-count">0</strong></div><div><span>Лучший результат</span><strong id="stat-best">—</strong></div><div><span>Средняя точность</span><strong id="stat-average">—</strong></div></div><div class="history-heading"><h2>Последние тренировки</h2><button id="clear-history" class="button button-light" disabled>Очистить историю</button></div><p class="control-help">Сохраняем до 50 фраз. Оценки зависят от режима, темпа и допуска.</p><div id="history"></div><button class="button button-primary" data-page="practice">Снова потренироваться</button></section>
+  </main>
+  <footer><span>пересмешник <span class="footer-dot">·</span> практика делает своё дело</span><span>Сделай вдох. Попробуй ещё раз.</span></footer>
+  <noscript><p class="notice">Для анализа микрофона включи JavaScript в браузере.</p></noscript>
+</body></html>
