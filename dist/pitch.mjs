@@ -1,8 +1,10 @@
+export const TEMPOS = Object.freeze({ slow: 36, normal: 50, fast: 65 });
+export const DIFFICULTIES = Object.freeze({ beginner: 200, intermediate: 100, advanced: 30 });
 export const MELODY = Object.freeze([
   { midi: 67, name: 'Соль', latin: 'G', beats: 0.5 },
-  { midi: 70, name: 'Си♭', latin: 'B♭', beats: 0.5 },
+  { midi: 70, name: 'Си', latin: 'B-flat', beats: 0.5 },
   { midi: 69, name: 'Ля', latin: 'A', beats: 0.5 },
-  { midi: 62, name: 'Ре', latin: 'D', beats: 2 },
+  { midi: 62, name: 'Ре', latin: 'D', beats: 0.65 },
 ]);
 export const midiToHz = midi => 440 * 2 ** ((midi - 69) / 12);
 export const hzToMidi = hz => 69 + 12 * Math.log2(hz / 440);
@@ -12,11 +14,20 @@ export function centsFrom(frequency, midi, anyOctave = false) {
   if (anyOctave) cents -= Math.round(cents / 1200) * 1200;
   return cents;
 }
-export function noteName(midi) {
-  const n = Math.round(midi);
-  return ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'][(n % 12 + 12) % 12] + (Math.floor(n / 12) - 1);
+export function withinTolerance(cents, tolerance) {
+  return cents !== null && Math.abs(cents) <= tolerance + 1e-6;
 }
-export function sequence(octave = 5, bpm = 90) {
+const noteNames = {
+  en: ['C', 'C♯', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'],
+  ru: ['До', 'До♯', 'Ре', 'Ми♭', 'Ми', 'Фа', 'Фа♯', 'Соль', 'Ля♭', 'Ля', 'Си♭', 'Си'],
+};
+export function noteName(midi, language = 'en') {
+  const n = Math.round(midi);
+  const name = (noteNames[language] ?? noteNames.en)[(n % 12 + 12) % 12];
+  const octave = Math.floor(n / 12) - 1;
+  return language === 'ru' ? `${name} ${octave}` : `${name}${octave}`;
+}
+export function sequence(octave = 5, bpm = TEMPOS.normal) {
   return MELODY.map(n => ({ ...n, midi: n.midi + (octave - 4) * 12, duration: n.beats * 60000 / bpm }));
 }
 
@@ -72,6 +83,8 @@ export class TrainingSession {
     this.hold = 0;
     this.holdPrecision = 0;
     this.gap = 0;
+    this.transitionPitch = null;
+    this.transitionSilence = 0;
     this.done = false;
     this.results = notes.map(() => null);
     this.earned = notes.map(() => 0);
@@ -90,16 +103,27 @@ export class TrainingSession {
         const end = boundary + this.notes[i].duration;
         const overlap = Math.max(0, Math.min(this.elapsed, end) - Math.max(this.elapsed - dt, boundary));
         const cents = centsFrom(frequency, this.notes[i].midi, this.anyOctave);
-        if (cents !== null && Math.abs(cents) <= this.tolerance) this.earned[i] += overlap * (1 - Math.abs(cents) / (2 * this.tolerance));
+        if (withinTolerance(cents, this.tolerance)) this.earned[i] += overlap * (1 - Math.abs(cents) / (2 * this.tolerance));
         if (this.elapsed >= end) this.results[i] = Math.round(100 * Math.min(1, this.earned[i] / this.notes[i].duration));
         if (this.elapsed >= boundary && this.elapsed < end) { this.index = i; this.hold = this.elapsed - boundary; }
         boundary = end;
       }
-      if (this.elapsed >= this.totalDuration) this.done = true;
+      if (this.elapsed >= this.totalDuration) {
+        this.index = this.notes.length - 1;
+        this.done = true;
+      }
       return;
     }
+    if (this.transitionPitch !== null) {
+      // Overlapping pitch bands still require a new whistle or an audible pitch change.
+      if (frequency) this.transitionSilence = 0;
+      else this.transitionSilence += dt;
+      const shift = centsFrom(frequency, this.transitionPitch);
+      if ((shift === null || Math.abs(shift) < 55) && this.transitionSilence < 90) return;
+      this.transitionPitch = null;
+    }
     const cents = centsFrom(frequency, this.notes[this.index].midi, this.anyOctave);
-    if (cents !== null && Math.abs(cents) <= this.tolerance) {
+    if (withinTolerance(cents, this.tolerance)) {
       this.gap = 0;
       this.hold += dt;
       this.holdPrecision += dt * (1 - Math.abs(cents) / (2 * this.tolerance));
@@ -110,7 +134,17 @@ export class TrainingSession {
     if (this.hold >= this.notes[this.index].duration) {
       this.results[this.index] = Math.round(100 * this.holdPrecision / this.hold);
       if (this.index === this.notes.length - 1) this.done = true;
-      else { this.index++; this.hold = 0; this.holdPrecision = 0; this.gap = 0; }
+      else {
+        this.index++;
+        this.hold = 0;
+        this.holdPrecision = 0;
+        this.gap = 0;
+        const nextCents = centsFrom(frequency, this.notes[this.index].midi, this.anyOctave);
+        if (withinTolerance(nextCents, this.tolerance)) {
+          this.transitionPitch = hzToMidi(frequency);
+          this.transitionSilence = 0;
+        }
+      }
     }
   }
   get score() { return Math.round(this.results.reduce((s, n) => s + (n || 0), 0) / this.notes.length); }

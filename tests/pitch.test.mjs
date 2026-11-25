@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { PitchDetector, TrainingSession, sequence, midiToHz, hzToMidi, centsFrom } from '../dist/pitch.mjs';
+import { DIFFICULTIES, TEMPOS, PitchDetector, TrainingSession, sequence, midiToHz, hzToMidi, centsFrom } from '../dist/pitch.mjs';
 
 function signal(frequency, sampleRate = 48000, { amplitude = 0.15, noise = 0, harmonic = 0 } = {}) {
   let seed = 42;
@@ -39,10 +39,13 @@ test('Tuning math and octave tolerance', () => {
   assert.equal(centsFrom(null, 69), null);
   assert.equal(centsFrom(Infinity, 69), null);
 });
-test('Reference intervals and rhythmic proportions remain unchanged when transposed', () => {
-  const notes = sequence(5, 120);
+test('The reference keeps its intervals at a slower tempo with a shorter final note', () => {
+  const notes = sequence();
   assert.deepEqual(notes.map(n => n.midi), [79, 82, 81, 74]);
-  assert.deepEqual(notes.map(n => n.duration), [250, 250, 250, 1000]);
+  assert.deepEqual(notes.map(n => n.duration), [600, 600, 600, 780]);
+  assert.equal(TEMPOS.normal, 50);
+  assert.deepEqual(notes.map(n => n.latin), ['G', 'B-flat', 'A', 'D']);
+  assert.deepEqual(notes.map(n => n.name), ['Соль', 'Си', 'Ля', 'Ре']);
 });
 test('Steps reject wrong pitches and reset an interrupted hold', () => {
   const session = new TrainingSession({ notes: sequence(4, 120) });
@@ -54,14 +57,14 @@ test('Steps reject wrong pitches and reset an interrupted hold', () => {
   for (let i = 0; i < 5; i++) session.tick(null, time += 30);
   assert.equal(session.hold, 0);
 });
-test('Steps and echo require all four notes, including the long final hold', () => {
+test('Steps and echo require the full hold for all four notes', () => {
   for (const mode of ['steps', 'echo']) {
     const session = new TrainingSession({ mode, notes: sequence(5, 120) });
     let time = 0;
     while (session.index < 3) session.tick(midiToHz(session.notes[session.index].midi), time += 25);
     for (let i = 0; i < 10; i++) session.tick(midiToHz(74), time += 25);
     assert.equal(session.done, false);
-    for (let i = 0; i < 30; i++) session.tick(midiToHz(74), time += 25);
+    for (let i = 0; i < 3; i++) session.tick(midiToHz(74), time += 25);
     assert.equal(session.done, true); assert.equal(session.score, 100);
   }
 });
@@ -76,12 +79,43 @@ test('Rhythm silence is scored zero, correct timing scores 100', () => {
   for (const silent of [true, false]) {
     const session = new TrainingSession({ mode: 'rhythm', notes: sequence(4, 120), startTime: 500 });
     session.tick(392, 400); assert.equal(session.elapsed, 0);
-    for (let t = 525; t <= 2250; t += 25) {
+    for (let t = 525; t <= 500 + session.totalDuration; t += 25) {
       const relative = t - 500 - 1;
       const index = relative < 250 ? 0 : relative < 500 ? 1 : relative < 750 ? 2 : 3;
       session.tick(silent ? null : midiToHz(session.notes[index].midi), t);
     }
     assert.equal(session.done, true); assert.equal(session.score, silent ? 0 : 100);
+  }
+});
+test('The accepted pitch range tightens with difficulty in both scoring modes', () => {
+  for (const mode of ['steps', 'rhythm']) {
+    const notes = [{ midi: 79, duration: 100 }];
+    for (const [offset, expected] of [[2, [true, false, false]], [1, [true, true, false]], [0.3, [true, true, true]], [2.01, [false, false, false]]]) {
+      const accepted = Object.values(DIFFICULTIES).map(tolerance => {
+        const session = new TrainingSession({ mode, notes, tolerance });
+        for (let time = 25; time <= 100; time += 25) session.tick(midiToHz(79 + offset), time);
+        return session.score > 0;
+      });
+      assert.deepEqual(accepted, expected);
+    }
+  }
+});
+test('A sustained pitch in overlapping bands advances one note at a time', () => {
+  const notes = sequence(5, 120).slice(1, 3);
+  for (const change of ['pitch', 'pause']) {
+    const session = new TrainingSession({ notes, tolerance: DIFFICULTIES.beginner });
+    let time = 0;
+    const first = midiToHz(notes[0].midi);
+    while (time < 1000) session.tick(first, time += 25);
+    assert.equal(session.index, 1);
+    assert.equal(session.hold, 0);
+    assert.equal(session.done, false);
+    if (change === 'pause') {
+      for (let i = 0; i < 4; i++) session.tick(null, time += 25);
+    }
+    const second = change === 'pitch' ? midiToHz(notes[1].midi) : first;
+    for (let i = 0; i < 10; i++) session.tick(second, time += 25);
+    assert.equal(session.done, true);
   }
 });
 test('A long scheduler gap cannot invent a successfully held note', () => {

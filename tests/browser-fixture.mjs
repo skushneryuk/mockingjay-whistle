@@ -7,7 +7,7 @@ for (const method of ['getItem', 'setItem', 'removeItem']) {
   Storage.prototype[method] = function(key, ...args) { return original.call(this, 'qa-' + key, ...args); };
 }
 const panel = document.createElement('section');
-panel.style.cssText = 'position:relative;padding:14px;background:#fff0c9;border-bottom:2px solid #ab792b;z-index:5;font:14px sans-serif;display:flex;flex-wrap:wrap;gap:12px;align-items:center';
+panel.style.cssText = 'position:relative;padding:14px;background:#fff0c9;color:#2d2118;border-bottom:2px solid #ab792b;z-index:5;font:14px sans-serif;display:flex;flex-wrap:wrap;gap:12px;align-items:center';
 panel.innerHTML = '<strong>QA · синтетический микрофон</strong><label>Сценарий <select id="qa-scenario"><option value="melody">Верная мелодия</option><option value="silence">Тишина</option><option value="denied">Отказ в доступе</option><option value="pending">Отложенный доступ</option></select></label><button id="qa-resolve">Выдать отложенный поток</button><output id="qa-tracks">Живых дорожек: 0</output><output id="qa-audio"></output>';
 document.body.prepend(panel);
 const tracks = [], contexts = [];
@@ -37,10 +37,11 @@ async function makeStream(scenario) {
   const monitor = context.createAnalyser(), muted = context.createGain(); muted.gain.value = 0;
   gain.connect(monitor).connect(muted).connect(context.destination);
   diagnostics.push({context, analyser:monitor, buffer:new Float32Array(monitor.fftSize), oscillator});
-  const mode = document.querySelector('.mode.active').dataset.mode;
-  const bpm = +document.querySelector('[data-bpm].active').dataset.bpm;
+  const mode = document.querySelector('[data-mode][aria-pressed="true"]').dataset.mode;
+  const bpm = +document.querySelector('[data-bpm][aria-pressed="true"]').dataset.bpm;
   const notes = sequence(+document.getElementById('octave').value, bpm), beat = 60 / bpm;
-  let start = context.currentTime + (mode === 'rhythm' ? 3 * beat + 0.15 : mode === 'echo' ? 5.5 * beat + 0.47 : 0.1);
+  const phrase = notes.reduce((seconds, note) => seconds + note.duration / 1000, 0);
+  let start = context.currentTime + (mode === 'rhythm' ? 3 * beat + 0.15 : mode === 'echo' ? phrase + 2 * beat + 0.53 : 0.15);
   oscillator.frequency.setValueAtTime(440, context.currentTime);
   gain.gain.setValueAtTime(0, context.currentTime);
   gain.gain.setValueAtTime(scenario === 'silence' ? 0 : 0.16, start);

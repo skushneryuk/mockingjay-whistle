@@ -1,48 +1,58 @@
-# Пересмешник
+# Mockingjay Whistle Trainer
 
-Небольшой русскоязычный тренажёр свиста сойки-пересмешницы из «Голодных игр».
+A local pitch trainer for the four-note Mockingjay signal. Use **EN** or **RU** to switch the interface language.
 
-## Запуск
+On narrow and touch screens, start and stop practice from the bottom bar. **Settings** in that bar opens the same controls as the desktop sidebar.
 
-Нужен Node.js. Внешних зависимостей и сборки нет.
+## Run locally
 
-```powershell
-npm start
-```
-
-Открой http://localhost:4173. Для удалённого доступа нужен HTTPS; браузер запрашивает разрешение на микрофон только после нажатия кнопки.
+With Node.js installed, run:
 
 ```powershell
-npm test
+node server.mjs
 ```
 
-## Возможности
+Open [http://localhost:4173](http://localhost:4173). The browser asks for microphone access when you start practice. Pitch analysis runs on the device. Settings and the last 50 completed phrases are saved in the browser.
 
-- По нотам: удержание правильной ноты и автоматический переход.
-- Эхо: синтезированный образец, пауза на подготовку, затем повторение.
-- В ритме: три доли отсчёта, курсор, оценка по высоте и времени.
-- Свободный тюнер без оценки.
-- 60/90/120 BPM, допуски ±50/30/15 центов, выбор октавы и чувствительности.
-- Настройки и последние 50 завершённых фраз в localStorage.
+## Practice
 
-## Звук и оценка
+- **Note by note** advances when you hold each target. **Echo** plays the sample and gives a count-in. **Rhythm** scores pitch and timing after a three-beat count-in. **Tuner** displays pitch without scoring.
+- **Follow notes** aligns the trace with the reference. **Live trace** uses elapsed time and shows the last eight seconds of your actual pitch. You can switch views during practice.
+- **Normal** is 50 BPM. Its first three notes each last 0.60 s, and the last lasts 0.78 s. **Slow** is 36 BPM and **Fast** is 65 BPM.
+- **Beginner** accepts ±2 semitones, **Intermediate** accepts ±1 semitone, and **Advanced** accepts ±30 cents. If two target ranges overlap, a change in pitch or a short breath separates the holds.
+- **Recorded** plays retuned excerpts from a real whistle. **Synthesized** uses a softer oscillator with gradual attack and release. Both follow the selected tempo, octave, and volume.
 
-Web Audio API читает микрофон в AnalyserNode, алгоритм YIN оценивает основную частоту примерно в диапазоне 180–2500 Гц. Аудио не записывается, не отправляется и не воспроизводится обратно. Образец синтезируется отдельным синусоидальным осциллятором. Во время образца и отсчёта оценка выключена. При остановке, уходе со страницы или скрытии вкладки дорожки микрофона закрываются. Отменённый запрос разрешения также закрывает дорожки, если пользователь выдаст разрешение позднее.
+The pitch sequence is G–B♭–A–D. The Russian cards read Соль–Си–Ля–Ре, and the detailed Russian pitch readout marks the flat as Си♭.
 
-В пошаговых режимах необходимое время удержания задаёт BPM; сбой более 100 мс сбрасывает удержание текущей ноты. Оценка удержания линейно уменьшается от 100% в центре до 50% на границе допуска. В ритме такой же показатель умножается на долю времени правильного звучания каждой ноты. Итог — среднее четырёх нот. Тишина и неверные ноты в режиме ритма дают ноль за соответствующее время.
+## Publish later
 
-Исходная последовательность G4–B♭4–A4–D4, длительности 0.5/0.5/0.5/2 четвертных доли (1:1:1:4). По умолчанию образец на октаву выше для свиста; переключатель «Любая октава» сравнивает класс ноты независимо от регистра. Учебные темпы не заявляются как оригинальный темп фильма.
+Push the repository to GitHub. Under **Settings → Pages → Source**, choose **GitHub Actions**, then run **Publish to GitHub Pages** from the **Actions** tab. The manually triggered workflow uploads `dist/`. All assets use relative paths so the site can run under the repository’s Pages subpath. Pages serves it over HTTPS for microphone access. [GitHub Pages workflow documentation](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)
 
-Источник нот: https://trademarks.justia.com/854/09/n-85409089.html
-Документация микрофона: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-Документация анализатора: https://developer.mozilla.org/en-US/docs/Web/API/AnalyserNode
+## Verify
 
-## Файлы
+```powershell
+node --test tests/pitch.test.mjs
+```
 
-`dist/index.html`, `dist/style.css`, `dist/app.mjs` — интерфейс и браузерный жизненный цикл. `dist/pitch.mjs` — распознавание и проверяемая логика тренировки. `tests/pitch.test.mjs` — синтетические аудиосигналы и проверки оценки. `.openai/hosting.json` — идентификатор и статическая конфигурация Sites.
+The local [QA page](http://localhost:4173/_qa.html) uses a synthetic MediaStream and separate browser storage. It tests the melody, silence, denied access, and permission granted after cancellation. Open the main page to check hardware microphone input.
 
-## Проверка на устройстве
+## Credits
 
-Автоматические тесты не заменяют проверку реального микрофона. Качество распознавания зависит от шума, обработки микрофона устройством и ровности свиста. Во встроенных браузерах доступ может быть ограничен; тогда нужно открыть HTTPS-ссылку в отдельной вкладке обычного браузера.
+- The note sequence is documented in the [Mockingjay sound mark](https://trademarks.justia.com/854/09/n-85409089.html).
+- The recorded samples are excerpts from [Whistle – Sustain tonal by Vrymaa](https://freesound.org/people/Vrymaa/sounds/797587/), released under [CC0](https://creativecommons.org/publicdomain/zero/1.0/). The clips were trimmed, filtered, and level-matched before playback retuning.
+- The emblem in `dist/assets/mockingjay-pin.webp` was made and isolated with built-in ImageGen. The header mark and browser icon are a smaller export in `dist/favicon.png`.
+- The dark bronze background in `dist/assets/blackened-bronze.webp` was made with built-in ImageGen.
 
-Для локальной проверки браузерного аудиотракта есть http://localhost:4173/_qa.html. Явно помеченная панель QA подаёт синтетический MediaStream вместо настоящего микрофона: верную мелодию, тишину, отказ или отложенное разрешение. Показывает число незакрытых дорожек. Фикстура лежит вне `dist/` и не публикуется. Используй отдельный профиль браузера, если не хочешь сохранять синтетические результаты в обычной локальной истории.
+<details>
+<summary>Banner prompt</summary>
+
+Create a wide 3:1 cinematic banner photograph for a minimalist Hunger Games Mockingjay whistle trainer website. Show a single original antique gold mockingbird pin inspired by the Mockingjay motif, a side-profile bird with one wing rising high and a subtly integrated slender arrow crossing an imperfect orbital ring. Intricate old engraved feather ridges, worn warm brass, small edge highlights. Center the complete pin horizontally and vertically, around 60 percent of image height. Keep all sides quiet and dark so it blends into a black-brown page. Almost black charcoal cloth or blackened metal background with fine grain and a very subtle warm low-lit haze behind the bird. High-end macro photograph of a real metal object with dimensional soft directional light, deep brown shadows, restrained palette of old gold and near-black. The pin is the only focal point. No words, letters, logos, typography, person, scenery, bright flames, or borders.
+
+</details>
+
+<details>
+<summary>Emblem cutout prompt</summary>
+
+Isolate the existing Mockingjay pin from this exact reference for a dark website masthead. Preserve the raised wing, left-facing bird, diagonal arrow, circular ring, and antique brass finish. Remove the dark cloth and every background pixel, including the open spaces inside the ring, so those spaces show the real transparent alpha channel. Keep the complete emblem centered in a square frame with about 8 percent transparent margin. Preserve the metallic highlights and fine feather engraving. Clean, antialiased edges. No cast shadow, backdrop, rectangular patch, glow, border, or letters.
+
+</details>
