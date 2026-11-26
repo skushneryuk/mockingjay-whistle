@@ -1,6 +1,6 @@
 # Mockingjay Whistle Trainer
 
-A local pitch trainer for the four-note Mockingjay signal. Use **EN** or **RU** to switch the interface language.
+Practice the four-note Mockingjay whistle from The Hunger Games in your browser. Use **EN** or **RU** to switch the interface language. [Open the Mockingjay Whistle Trainer](https://skushneryuk.github.io/mockingjay-whistle/)
 
 On narrow and touch screens, start and stop practice from the bottom bar. **Settings** in that bar opens the same controls as the desktop sidebar.
 
