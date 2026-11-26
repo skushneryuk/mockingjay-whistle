@@ -374,6 +374,8 @@ select:disabled { color: var(--muted); }
 .guide-panel dl > div { display: grid; grid-template-columns: minmax(101px, 1fr) 4fr; gap: 8px; }
 .guide-panel dt { color: var(--gold-bright); }
 .guide-panel p, .guide-panel dd, .muted { color: var(--muted); }
+.guide-scene-links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin-top: 8px; }
+.guide-scene-links a { padding-block: 4px; color: var(--gold-bright); text-decoration: underline; text-underline-offset: .2em; }
 
 @media (max-width: 980px) {
   .shell { width: calc(100% - 44px); }
